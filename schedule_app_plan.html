@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>스케줄 관리 앱 구현 계획서</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --text: #20242c;
+      --muted: #667085;
+      --line: #d9dee8;
+      --primary: #2457a6;
+      --primary-soft: #e8f0ff;
+      --danger: #d92d20;
+      --warning: #b54708;
+      --success: #067647;
+      --neutral: #475467;
+      --accent: #0f766e;
+      --shadow: 0 14px 38px rgba(32, 36, 44, 0.09);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, "Malgun Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.58;
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1.35fr 0.9fr;
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 24px;
+    }
+
+    .intro,
+    .summary,
+    section,
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .intro {
+      padding: 32px;
+      border-radius: 8px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      margin-top: 14px;
+      font-size: clamp(30px, 5vw, 54px);
+      line-height: 1.08;
+    }
+
+    h2 {
+      font-size: 25px;
+      margin-bottom: 18px;
+    }
+
+    h3 {
+      font-size: 17px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    .lead {
+      margin-top: 18px;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .summary {
+      display: grid;
+      gap: 14px;
+      padding: 24px;
+      border-radius: 8px;
+    }
+
+    .summary-item {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .summary-item:last-child {
+      border-bottom: 0;
+    }
+
+    .summary strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 15px;
+    }
+
+    .summary span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    section {
+      margin-top: 24px;
+      padding: 28px;
+      border-radius: 8px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      padding: 18px;
+      border-radius: 8px;
+      box-shadow: none;
+    }
+
+    .card p,
+    li,
+    td,
+    th {
+      color: var(--muted);
+    }
+
+    .steps {
+      display: grid;
+      gap: 14px;
+      counter-reset: step;
+    }
+
+    .step {
+      position: relative;
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 16px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .formula {
+      display: grid;
+      gap: 14px;
+      padding: 20px;
+      border-radius: 8px;
+      background: #f0f7f6;
+      border: 1px solid #b8d7d2;
+    }
+
+    code {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: #eef2f7;
+      color: #24324a;
+      font-family: Consolas, monospace;
+      font-size: 0.95em;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f4f6fa;
+      color: #344054;
+      font-weight: 800;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .priority-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .priority-item {
+      display: grid;
+      grid-template-columns: 12px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 42px;
+      border-radius: 8px;
+    }
+
+    .p1 {
+      background: var(--danger);
+    }
+
+    .p2 {
+      background: var(--warning);
+    }
+
+    .p3 {
+      background: var(--primary);
+    }
+
+    .p4 {
+      background: var(--success);
+    }
+
+    .p5 {
+      background: var(--neutral);
+    }
+
+    .score {
+      min-width: 76px;
+      text-align: right;
+      font-weight: 800;
+      color: #344054;
+    }
+
+    .mockup {
+      display: grid;
+      grid-template-columns: 240px minmax(0, 1fr) 280px;
+      min-height: 520px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .sidebar {
+      padding: 18px;
+      background: #f7f9fc;
+      border-right: 1px solid var(--line);
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+      margin-bottom: 14px;
+    }
+
+    .field label {
+      color: #344054;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .input {
+      min-height: 38px;
+      padding: 8px 10px;
+      border: 1px solid #cbd3df;
+      border-radius: 6px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .button {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      min-height: 40px;
+      padding: 8px 14px;
+      border: 0;
+      border-radius: 6px;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .calendar-area {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-width: 0;
+    }
+
+    .priority-board {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 12px;
+      padding: 18px;
+      background: #fbfcfe;
+      border-left: 1px solid var(--line);
+    }
+
+    .priority-board p {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .ranked-list {
+      display: grid;
+      align-content: start;
+      gap: 10px;
+    }
+
+    .ranked-schedule {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-left: 5px solid;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .ranked-schedule.high {
+      border-left-color: var(--danger);
+    }
+
+    .ranked-schedule.mid {
+      border-left-color: var(--warning);
+    }
+
+    .ranked-schedule.normal {
+      border-left-color: var(--primary);
+    }
+
+    .ranked-schedule.low {
+      border-left-color: var(--success);
+    }
+
+    .rank {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #eef2f7;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .ranked-title {
+      color: #20242c;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .ranked-meta {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .ranked-score {
+      margin-top: 6px;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .app-demo {
+      position: relative;
+      overflow: hidden;
+      min-height: 760px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .demo-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 34px;
+      padding: 0 14px;
+      background: #f8fafc;
+      color: #111827;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .demo-ad {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 30px;
+      padding: 0 14px;
+      color: #344054;
+      font-size: 13px;
+      border-bottom: 1px solid #eef2f7;
+    }
+
+    .ad-badge {
+      display: inline-grid;
+      place-items: center;
+      width: 22px;
+      height: 18px;
+      border-radius: 4px;
+      background: #f59e0b;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .demo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 18px 14px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .month-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .avatar {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #d7ecff;
+      color: #2457a6;
+      font-weight: 800;
+    }
+
+    .month-heading h3 {
+      font-size: 24px;
+      white-space: nowrap;
+    }
+
+    .header-tools {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: #98a2b3;
+      font-size: 24px;
+    }
+
+    .demo-content {
+      min-height: 626px;
+      padding-bottom: 78px;
+      background: #fff;
+    }
+
+    .demo-page {
+      display: none;
+    }
+
+    .demo-page.active {
+      display: block;
+    }
+
+    .week-row {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      min-width: 840px;
+      height: 36px;
+      border-bottom: 1px solid #e5e7eb;
+      color: #98a2b3;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .week-row span {
+      display: grid;
+      place-items: center;
+    }
+
+    .week-row span:first-child {
+      color: #ff4d4f;
+    }
+
+    .week-row span:last-child {
+      color: #111827;
+    }
+
+    .calendar-scroll {
+      overflow-x: auto;
+      background: #fff;
+    }
+
+    .month-board {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(120px, 1fr));
+      grid-template-rows: repeat(6, 108px);
+      min-width: 840px;
+    }
+
+    .month-cell {
+      position: relative;
+      overflow: hidden;
+      padding: 8px 6px;
+      border-right: 1px solid #eef2f7;
+      border-bottom: 1px solid #e5e7eb;
+      background: #fff;
+    }
+
+    .month-cell:nth-child(7n) {
+      border-right: 0;
+    }
+
+    .day-num {
+      display: block;
+      margin-bottom: 3px;
+      color: #111827;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .month-cell.sun .day-num,
+    .holiday {
+      color: #ff4d4f;
+    }
+
+    .month-cell.muted .day-num,
+    .month-cell.muted .mini-event {
+      color: #b7bec9;
+      opacity: 0.72;
+    }
+
+    .day-num.today {
+      display: grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      margin: 0 auto 3px;
+      border-radius: 50%;
+      background: #2f9df4;
+      color: #fff;
+    }
+
+    .holiday {
+      display: block;
+      margin-top: -1px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .mini-event {
+      display: block;
+      min-height: 20px;
+      margin-top: 4px;
+      padding: 3px 6px;
+      overflow: hidden;
+      border-radius: 5px;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.25;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mini-event.blue {
+      background: #38a3e8;
+    }
+
+    .mini-event.red {
+      background: #f43146;
+    }
+
+    .mini-event.yellow {
+      background: #ffd232;
+      color: #4b3700;
+    }
+
+    .mini-event.orange {
+      background: #ff9718;
+    }
+
+    .mini-event.green {
+      background: #6bd143;
+    }
+
+    .mini-event.pink {
+      background: #f37f9b;
+    }
+
+    .mini-event.pale {
+      background: #bfe3fb;
+      color: #37627a;
+    }
+
+    .task-page {
+      min-height: 626px;
+      padding: 22px;
+      background: #f8fafc;
+    }
+
+    .task-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .task-head p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .task-count {
+      min-width: 86px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      text-align: center;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .task-list-page {
+      display: grid;
+      gap: 10px;
+    }
+
+    .task-row {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-left: 6px solid;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .task-row.urgent {
+      border-left-color: var(--danger);
+    }
+
+    .task-row.high {
+      border-left-color: var(--warning);
+    }
+
+    .task-row.normal {
+      border-left-color: var(--primary);
+    }
+
+    .task-row.low {
+      border-left-color: var(--success);
+    }
+
+    .task-rank {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #eef2f7;
+      color: #344054;
+      font-weight: 800;
+    }
+
+    .task-title {
+      color: #20242c;
+      font-weight: 800;
+    }
+
+    .task-meta {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .task-score {
+      color: #344054;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .bottom-nav {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      min-height: 74px;
+      border-top: 1px solid #e5e7eb;
+      background: rgba(255, 255, 255, 0.97);
+    }
+
+    .bottom-tab {
+      display: grid;
+      place-items: center;
+      gap: 3px;
+      border: 0;
+      background: transparent;
+      color: #98a2b3;
+      cursor: pointer;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .bottom-tab.active {
+      color: #2f9df4;
+    }
+
+    .tab-icon {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: #c2c8d0;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .bottom-tab.active .tab-icon {
+      background: #2f9df4;
+    }
+
+    .calendar-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .tab.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(82px, 1fr));
+      gap: 1px;
+      background: var(--line);
+      min-width: 0;
+    }
+
+    .day {
+      min-height: 116px;
+      padding: 8px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .date {
+      display: block;
+      margin-bottom: 6px;
+      color: #344054;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .event {
+      margin-top: 6px;
+      padding: 6px 7px;
+      border-left: 4px solid;
+      border-radius: 5px;
+      background: #f8fafc;
+      font-size: 12px;
+      color: #344054;
+    }
+
+    .event.high {
+      border-color: var(--danger);
+    }
+
+    .event.mid {
+      border-color: var(--warning);
+    }
+
+    .event.low {
+      border-color: var(--success);
+    }
+
+    .checklist {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .checklist li {
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 1100px) {
+      .mockup {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .priority-board {
+        border-left: 0;
+        border-top: 1px solid var(--line);
+      }
+    }
+
+    @media (max-width: 900px) {
+      header,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .mockup {
+        min-height: 0;
+      }
+
+      .app-demo {
+        min-height: 748px;
+      }
+
+      .demo-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .calendar-grid {
+        grid-template-columns: repeat(2, minmax(130px, 1fr));
+      }
+
+      .calendar-top {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .page {
+        width: min(100% - 20px, 1180px);
+        padding-top: 16px;
+      }
+
+      .intro,
+      section,
+      .summary {
+        padding: 18px;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .priority-item {
+        grid-template-columns: 10px 1fr;
+      }
+
+      .score {
+        grid-column: 2;
+        text-align: left;
+      }
+
+      .calendar-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .demo-status,
+      .demo-ad,
+      .demo-header,
+      .task-page {
+        padding-right: 12px;
+        padding-left: 12px;
+      }
+
+      .month-heading h3 {
+        font-size: 20px;
+      }
+
+      .task-row {
+        grid-template-columns: 34px minmax(0, 1fr);
+      }
+
+      .task-score {
+        grid-column: 2;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div class="intro">
+        <span class="eyebrow">HTML 기반 스케줄 관리 앱 계획서</span>
+        <h1>우선순위 점수로 일정을 자동 정렬하는 달력 앱</h1>
+        <p class="lead">
+          일정의 카테고리, 난이도, 남은 기한을 점수화하고 점수가 높은 일정일수록 달력과 우선순위 목록의 상단에 표시한다.
+          사용자는 오늘 가장 먼저 처리해야 할 일을 색상과 순서로 빠르게 판단할 수 있다.
+        </p>
+      </div>
+
+      <aside class="summary" aria-label="핵심 요약">
+        <div class="summary-item">
+          <strong>핵심 기능</strong>
+          <span>일정 등록, 달력 표시, 점수 계산, 우선순위 정렬, 색상 구분</span>
+        </div>
+        <div class="summary-item">
+          <strong>카테고리 우선순위</strong>
+          <span>과제 제출 &gt; 수행 &gt; 시험 &gt; 약속 &gt; 기타 일정</span>
+        </div>
+        <div class="summary-item">
+          <strong>권장 구현 방식</strong>
+          <span>HTML + CSS + JavaScript + localStorage로 먼저 제작</span>
+        </div>
+      </aside>
+    </header>
+
+    <section>
+      <h2>1. 앱 목표와 사용자 흐름</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>일정 입력</h3>
+          <p>제목, 날짜, 카테고리, 난이도, 마감일을 입력한다. 같은 날짜에 여러 일정이 있어도 점수순으로 정렬한다.</p>
+        </div>
+        <div class="card">
+          <h3>자동 점수 계산</h3>
+          <p>카테고리 기본점수, 난이도 가중치, 남은 기한 긴급도를 합산해 최종 점수를 만든다.</p>
+        </div>
+        <div class="card">
+          <h3>우선순위 표시</h3>
+          <p>점수가 높은 일정은 빨간색 계열로 상단에 표시하고, 낮은 일정은 초록색 또는 회색으로 표시한다.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. 점수 산정 규칙</h2>
+      <div class="formula">
+        <p><strong>최종 점수</strong> = <code>카테고리 기본점수 + 난이도 점수 + 기한 긴급도 점수</code></p>
+        <p>
+          카테고리 점수는 사용자가 요청한 중요도 순서를 반영해 과제 제출, 수행, 시험, 약속, 기타 일정 순으로 높게 잡는다.
+          난이도와 마감 임박도는 같은 카테고리 안에서 우선순위를 더 정확히 나누는 역할을 한다.
+        </p>
+      </div>
+
+      <table aria-label="점수 기준표">
+        <thead>
+          <tr>
+            <th>항목</th>
+            <th>입력값</th>
+            <th>점수 기준</th>
+            <th>설명</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>카테고리</td>
+            <td>과제 제출 / 수행 / 시험 / 약속 / 기타 일정</td>
+            <td>50 / 40 / 30 / 20 / 10</td>
+            <td>일정의 기본 중요도를 결정한다.</td>
+          </tr>
+          <tr>
+            <td>난이도</td>
+            <td>상 / 중 / 하</td>
+            <td>30 / 20 / 10</td>
+            <td>어려운 일일수록 더 일찍 처리하도록 점수를 높인다.</td>
+          </tr>
+          <tr>
+            <td>남은 기한</td>
+            <td>오늘 / 1~3일 / 4~7일 / 8일 이상</td>
+            <td>30 / 20 / 10 / 0</td>
+            <td>마감이 가까울수록 상단에 띄운다.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>3. 우선순위 색상 규칙</h2>
+      <div class="priority-list">
+        <div class="priority-item">
+          <span class="swatch p1"></span>
+          <div>
+            <h3>매우 높음</h3>
+            <p>90점 이상. 오늘 바로 확인해야 하는 일정이다.</p>
+          </div>
+          <span class="score">빨강</span>
+        </div>
+        <div class="priority-item">
+          <span class="swatch p2"></span>
+          <div>
+            <h3>높음</h3>
+            <p>70~89점. 가까운 시일 내에 처리해야 하는 일정이다.</p>
+          </div>
+          <span class="score">주황</span>
+        </div>
+        <div class="priority-item">
+          <span class="swatch p3"></span>
+          <div>
+            <h3>보통</h3>
+            <p>50~69점. 일반적인 우선순위로 관리한다.</p>
+          </div>
+          <span class="score">파랑</span>
+        </div>
+        <div class="priority-item">
+          <span class="swatch p4"></span>
+          <div>
+            <h3>낮음</h3>
+            <p>30~49점. 여유가 있을 때 처리한다.</p>
+          </div>
+          <span class="score">초록</span>
+        </div>
+        <div class="priority-item">
+          <span class="swatch p5"></span>
+          <div>
+            <h3>매우 낮음</h3>
+            <p>29점 이하. 참고용 일정으로 관리한다.</p>
+          </div>
+          <span class="score">회색</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>4. 화면 구성 초안</h2>
+      <div class="app-demo" aria-label="달력과 업무 탭이 있는 스케줄 관리 앱 화면 초안">
+        <div class="demo-status">
+          <span>오후 9:31&nbsp;&nbsp;5월 30일 토요일</span>
+          <span>Wi-Fi · 87%</span>
+        </div>
+        <div class="demo-ad">
+          <span class="ad-badge">Ad</span>
+          <span>Pikmin Bloom을 다운로드하고 피크민과 추억을 만드세요</span>
+        </div>
+        <div class="demo-header">
+          <div class="month-heading">
+            <span class="avatar">나</span>
+            <h3>2026년 5월 ▼</h3>
+          </div>
+          <div class="header-tools" aria-hidden="true">
+            <span>⌕</span>
+            <span>◯</span>
+          </div>
+        </div>
+
+        <div class="demo-content">
+          <div class="demo-page active" id="calendarView" data-view-page="calendar">
+            <div class="calendar-scroll">
+              <div class="week-row" aria-label="요일">
+                <span>일</span>
+                <span>월</span>
+                <span>화</span>
+                <span>수</span>
+                <span>목</span>
+                <span>금</span>
+                <span>토</span>
+              </div>
+              <div class="month-board" aria-label="2026년 5월 월간 달력">
+                <div class="month-cell muted sun">
+                  <span class="day-num">26</span>
+                  <span class="mini-event pink">중간고사</span>
+                </div>
+                <div class="month-cell muted">
+                  <span class="day-num">27</span>
+                </div>
+                <div class="month-cell muted">
+                  <span class="day-num">28</span>
+                </div>
+                <div class="month-cell muted">
+                  <span class="day-num">29</span>
+                  <span class="mini-event yellow">체육대회</span>
+                </div>
+                <div class="month-cell muted">
+                  <span class="day-num">30</span>
+                  <span class="mini-event blue">필기</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">1</span>
+                  <span class="holiday">노동절</span>
+                  <span class="mini-event red">개교기념일</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">2</span>
+                </div>
+
+                <div class="month-cell sun">
+                  <span class="day-num">3</span>
+                  <span class="mini-event blue">필기</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">4</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">5</span>
+                  <span class="holiday">어린이날</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">6</span>
+                  <span class="mini-event yellow">국어 수행 자료찾기</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">7</span>
+                  <span class="mini-event pink">지은이 생일</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">8</span>
+                  <span class="mini-event yellow">국어 수행 자료찾기 2</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">9</span>
+                  <span class="mini-event blue">치과</span>
+                </div>
+
+                <div class="month-cell sun">
+                  <span class="day-num">10</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">11</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">12</span>
+                  <span class="mini-event yellow">국어 수행 글쓰기</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">13</span>
+                  <span class="mini-event blue">영어화학발표</span>
+                  <span class="mini-event red">대수 수행</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">14</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">15</span>
+                  <span class="mini-event orange">물리 서술형 평가</span>
+                  <span class="mini-event yellow">봉사활동</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">16</span>
+                  <span class="mini-event green">과학 부스 운영</span>
+                </div>
+
+                <div class="month-cell sun">
+                  <span class="day-num">17</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">18</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">19</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">20</span>
+                  <span class="mini-event orange">사설모의고사</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">21</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">22</span>
+                  <span class="mini-event blue">필기</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">23</span>
+                  <span class="mini-event blue">치과</span>
+                </div>
+
+                <div class="month-cell sun">
+                  <span class="day-num">24</span>
+                  <span class="holiday">부처님 오신 날</span>
+                  <span class="mini-event blue">필기</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">25</span>
+                  <span class="holiday">대체공휴일</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">26</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">27</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">28</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num">29</span>
+                </div>
+                <div class="month-cell">
+                  <span class="day-num today">30</span>
+                </div>
+
+                <div class="month-cell sun">
+                  <span class="day-num">31</span>
+                </div>
+                <div class="month-cell muted">
+                  <span class="day-num">1</span>
+                  <span class="mini-event pink">친구 생일</span>
+                </div>
+                <div class="month-cell muted">
+                  <span class="day-num">2</span>
+                  <span class="mini-event pink">지구 수행 제출</span>
+                </div>
+                <div class="month-cell muted">
+                  <span class="day-num">3</span>
+                  <span class="holiday">지방선거</span>
+                </div>
+                <div class="month-cell muted">
+                  <span class="day-num">4</span>
+                  <span class="mini-event pink">6모</span>
+                </div>
+                <div class="month-cell muted">
+                  <span class="day-num">5</span>
+                  <span class="mini-event pale">영어 수행</span>
+                </div>
+                <div class="month-cell muted">
+                  <span class="day-num">6</span>
+                  <span class="holiday">현충일</span>
+                  <span class="mini-event pale">석귀</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="demo-page task-page" id="taskView" data-view-page="tasks">
+            <div class="task-head">
+              <div>
+                <h3>업무 우선순위</h3>
+                <p>카테고리, 난이도, 남은 기한 점수를 합산해 높은 점수부터 정렬한다.</p>
+              </div>
+              <span class="task-count">8개 업무</span>
+            </div>
+            <div class="task-list-page" aria-label="우선순위별 업무 목록">
+              <div class="task-row urgent">
+                <span class="task-rank">1</span>
+                <div>
+                  <div class="task-title">수학 과제 제출</div>
+                  <div class="task-meta">과제 제출 · 난이도 상 · D-2</div>
+                </div>
+                <span class="task-score">110점</span>
+              </div>
+              <div class="task-row urgent">
+                <span class="task-rank">2</span>
+                <div>
+                  <div class="task-title">국어 수행 자료찾기 2</div>
+                  <div class="task-meta">과제 제출 · 난이도 중 · D-1</div>
+                </div>
+                <span class="task-score">100점</span>
+              </div>
+              <div class="task-row high">
+                <span class="task-rank">3</span>
+                <div>
+                  <div class="task-title">영어화학발표</div>
+                  <div class="task-meta">수행 · 난이도 상 · D-3</div>
+                </div>
+                <span class="task-score">90점</span>
+              </div>
+              <div class="task-row high">
+                <span class="task-rank">4</span>
+                <div>
+                  <div class="task-title">대수 수행</div>
+                  <div class="task-meta">수행 · 난이도 중 · D-3</div>
+                </div>
+                <span class="task-score">80점</span>
+              </div>
+              <div class="task-row normal">
+                <span class="task-rank">5</span>
+                <div>
+                  <div class="task-title">물리 서술형 평가</div>
+                  <div class="task-meta">시험 · 난이도 상 · D-5</div>
+                </div>
+                <span class="task-score">70점</span>
+              </div>
+              <div class="task-row normal">
+                <span class="task-rank">6</span>
+                <div>
+                  <div class="task-title">치과 예약</div>
+                  <div class="task-meta">약속 · 난이도 하 · D-4</div>
+                </div>
+                <span class="task-score">50점</span>
+              </div>
+              <div class="task-row low">
+                <span class="task-rank">7</span>
+                <div>
+                  <div class="task-title">봉사활동</div>
+                  <div class="task-meta">기타 일정 · 난이도 중 · D-5</div>
+                </div>
+                <span class="task-score">40점</span>
+              </div>
+              <div class="task-row low">
+                <span class="task-rank">8</span>
+                <div>
+                  <div class="task-title">필기 정리</div>
+                  <div class="task-meta">기타 일정 · 난이도 하 · D-7</div>
+                </div>
+                <span class="task-score">30점</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <nav class="bottom-nav" aria-label="하단 화면 전환">
+          <button class="bottom-tab active" type="button" data-view-tab="calendar" aria-controls="calendarView" aria-selected="true">
+            <span class="tab-icon">30</span>
+            <span>달력</span>
+          </button>
+          <button class="bottom-tab" type="button" data-view-tab="tasks" aria-controls="taskView" aria-selected="false">
+            <span class="tab-icon">✓</span>
+            <span>업무</span>
+          </button>
+        </nav>
+      </div>
+    </section>
+
+    <section>
+      <h2>5. 단계별 구현 방안</h2>
+      <div class="steps">
+        <div class="step">
+          <div>
+            <h3>기본 HTML 구조 만들기</h3>
+            <p>상단에는 상태 표시와 월 제목을 두고, 본문에는 월간 달력 또는 업무 목록이 표시되도록 만든다. 하단에는 <code>달력</code>, <code>업무</code> 탭을 배치한다.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div>
+            <h3>입력 데이터 정의</h3>
+            <p>일정 객체는 <code>id</code>, <code>title</code>, <code>category</code>, <code>difficulty</code>, <code>dueDate</code>, <code>memo</code>, <code>score</code>를 가진다.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div>
+            <h3>점수 계산 함수 작성</h3>
+            <p>카테고리 기본점수, 난이도 점수, 오늘 날짜와 마감일 차이로 구한 기한 점수를 더해 최종 점수를 계산한다.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div>
+            <h3>달력 렌더링 구현</h3>
+            <p>현재 월의 6주 날짜 칸을 모두 만들고, 이전 달과 다음 달 일부 날짜까지 함께 보여줘 한 달 일정 흐름이 끊기지 않게 한다.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div>
+            <h3>업무 탭 페이지 구현</h3>
+            <p>하단 <code>업무</code> 탭을 누르면 전체 일정을 하나의 배열로 모은 뒤 <code>score</code> 기준 내림차순으로 정렬한 목록을 보여준다.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div>
+            <h3>색상과 상단 표시 적용</h3>
+            <p>점수 구간과 카테고리에 따라 CSS 클래스를 부여하고, 달력 일정 막대와 업무 목록에 같은 우선순위 색상 기준을 적용한다.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div>
+            <h3>저장 기능 추가</h3>
+            <p>처음에는 <code>localStorage</code>에 저장해 새로고침 후에도 일정이 유지되도록 한다. 이후 필요하면 서버와 데이터베이스로 확장한다.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div>
+            <h3>수정, 삭제, 필터 기능 추가</h3>
+            <p>등록된 일정을 클릭하면 상세 내용을 확인하고 수정 또는 삭제할 수 있게 한다. 카테고리별 필터와 완료 표시 기능도 추가한다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>6. JavaScript 핵심 로직 예시</h2>
+      <div class="formula">
+        <p><code>score = categoryScore[category] + difficultyScore[difficulty] + deadlineScore(daysLeft)</code></p>
+        <p>
+          같은 날짜에 여러 일정이 있으면 <code>events.sort((a, b) =&gt; b.score - a.score)</code> 방식으로 정렬한다.
+          달력 탭에는 날짜별 정렬 결과를 출력하고, 업무 탭에는 전체 일정 배열을 같은 방식으로 정렬해 출력한다.
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <h2>7. 완성 전 확인 목록</h2>
+      <ul class="checklist">
+        <li>과제 제출, 수행, 시험, 약속, 기타 일정 순서로 기본 점수가 적용되는지 확인한다.</li>
+        <li>난이도가 높을수록 같은 카테고리 안에서 점수가 올라가는지 확인한다.</li>
+        <li>마감일이 가까울수록 우선순위가 높아지는지 확인한다.</li>
+        <li>점수 구간별 색상이 달력과 업무 목록에 일관되게 표시되는지 확인한다.</li>
+        <li>하단의 달력 탭과 업무 탭을 눌렀을 때 화면이 정상적으로 전환되는지 확인한다.</li>
+        <li>새로고침 후에도 일정이 유지되는지 확인한다.</li>
+        <li>모바일 화면에서도 달력과 업무 목록이 겹치지 않고 읽히는지 확인한다.</li>
+      </ul>
+    </section>
+  </main>
+  <script>
+    const viewTabs = document.querySelectorAll("[data-view-tab]");
+    const viewPages = document.querySelectorAll("[data-view-page]");
+
+    viewTabs.forEach((tabButton) => {
+      tabButton.addEventListener("click", () => {
+        const targetView = tabButton.dataset.viewTab;
+
+        viewTabs.forEach((button) => {
+          const isActive = button.dataset.viewTab === targetView;
+          button.classList.toggle("active", isActive);
+          button.setAttribute("aria-selected", String(isActive));
+        });
+
+        viewPages.forEach((page) => {
+          page.classList.toggle("active", page.dataset.viewPage === targetView);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
